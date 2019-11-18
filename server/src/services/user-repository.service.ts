@@ -1,4 +1,12 @@
-import { IsDateString, IsOptional, IsString, IsUUID, MinLength, ValidateNested } from 'class-validator';
+import {
+    ArrayMinSize,
+    IsDateString,
+    IsOptional,
+    IsString,
+    IsUUID,
+    MinLength,
+    ValidateNested,
+} from 'class-validator';
 import { Injectable } from 'injection-js';
 import { clone, find, map, reject } from 'lodash';
 import * as uuid from 'uuid/v4';
@@ -75,6 +83,13 @@ export class DeleteQualification {
     id: string = '';
 }
 
+export class MergeUsers {
+    @ArrayMinSize(2)
+    @IsUUID('4', {
+        each: true,
+    })
+    ids: string[] = [];
+}
 
 @Injectable()
 export class UserRepository {
