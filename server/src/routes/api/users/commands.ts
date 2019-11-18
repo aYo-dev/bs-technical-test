@@ -1,8 +1,18 @@
 import { validate } from 'class-validator';
 import { Context, Middleware } from 'koa';
-import { assign } from 'lodash';
+import { assign, flowRight, map } from 'lodash';
 
-import { AddQualification, CreateUser, DeleteQualification, DeleteUser, UpdateName, UserRepository } from '../../../services/user-repository.service';
+import { UserMerger } from '../../../services/user-merger.service';
+import {
+    AddQualification,
+    CreateUser,
+    DeleteQualification,
+    DeleteUser,
+    MergeUsers,
+    UpdateName,
+    User,
+    UserRepository,
+} from '../../../services/user-repository.service';
 
 
 function checkedCommand<T>(type: new() => T, action: (body: T) => any): Middleware {
@@ -36,6 +46,36 @@ function createUser(ctx: Context, cmd: CreateUser) {
     ctx.set('Location', `/api/users/${user.id}`);
 }
 
+function mergeUsers(ctx: Context, cmd: MergeUsers) {
+    const userRepo = ctx.injector.get(UserRepository);
+    const mergeService = ctx.injector.get(UserMerger);
+    // Get the users
+    const users =
+        map(cmd.ids, (id) => userRepo.get(id))
+        .filter((el) => !!el);
+
+    if (users.length >= 2) {
+        const merge = flowRight([
+            userRepo.create.bind(userRepo),
+            mergeService.merge.bind(mergeService),
+        ]);
+
+        // merge users and insert the new one
+        const newUser = merge(users as User[]);
+        // finaly delete the merged users
+        map(users, (u) => userRepo.delete(u as User));
+
+        ctx.status = 200;
+        ctx.body = newUser;
+        ctx.set('Location', `/api/users/commands`);
+
+        return;
+    }
+
+    ctx.status = 400;
+    ctx.set('Location', `/api/users/commands`);
+}
+
 
 export function commands(): Middleware {
     return async (ctx, next) => {
@@ -54,6 +94,8 @@ export function commands(): Middleware {
                 checkedCommand(AddQualification, (cmd: AddQualification) => users.addQualification(cmd)),
             'application/vnd.in.biosite.delete-qualification+json':
                 checkedCommand(DeleteQualification, (cmd: DeleteQualification) => users.deleteQualification(cmd)),
+            'application/vnd.in.biosite.merge-users+json':
+                checkedCommand(MergeUsers, (cmd: MergeUsers) => mergeUsers(ctx, cmd)),
         };
 
         const contentType: string = ctx.request.headers['content-type'];
