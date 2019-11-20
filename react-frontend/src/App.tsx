@@ -1,16 +1,19 @@
 import React from 'react';
 import './App.css';
 
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'connected-react-router';
+
+import store, { history } from './store/store';
+import routes from './routes';
+
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        Your App Here
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-      </header>
-    </div>
+    <Provider store={store}>
+      <ConnectedRouter history={history}>
+        {routes}
+      </ConnectedRouter>
+    </Provider>
   );
 }
 
