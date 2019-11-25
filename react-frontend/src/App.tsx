@@ -8,8 +8,6 @@ import store, { history } from './store/store';
 import Routes from './routes';
 import { MuiThemeProvider } from 'material-ui/styles';
 
-// import '../node_modules/bootstrap/dist/css/bootstrap.css';
-
 const App: React.FC = () => {
   return (
     <div className="app">
