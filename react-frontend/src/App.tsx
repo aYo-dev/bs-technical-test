@@ -5,15 +5,22 @@ import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 
 import store, { history } from './store/store';
-import routes from './routes';
+import Routes from './routes';
+import { MuiThemeProvider } from 'material-ui/styles';
+
+// import '../node_modules/bootstrap/dist/css/bootstrap.css';
 
 const App: React.FC = () => {
   return (
-    <Provider store={store}>
-      <ConnectedRouter history={history}>
-        {routes}
-      </ConnectedRouter>
-    </Provider>
+    <div className="app">
+      <MuiThemeProvider>
+        <Provider store={store}>
+          <ConnectedRouter history={history}>
+            <Routes />
+          </ConnectedRouter>
+        </Provider>
+      </MuiThemeProvider>
+    </div>
   );
 }
 
